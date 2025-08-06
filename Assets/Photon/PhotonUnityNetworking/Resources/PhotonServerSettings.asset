@@ -35,8 +35,8 @@ MonoBehaviour:
   StartInOfflineMode: 0
   RpcList:
   - ControlLabelOnPhone
-  - ReceiveInitialData
   - ReceiveInitialDataOnPhone
+  - InitialiseUIOnPhone
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

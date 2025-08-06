@@ -1,57 +1,48 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
-    private const int maxPlayerCount = 3;
-    public Device device;
-    public enum Device { hmd, smartphone, desktop }
-    private string deviceName => device.ToString();
+    #region Constants
+    private const int MAX_PLAYER_COUNT = 3;
+    private const string ROOM_NAME = "myRoom";
+    public const string HMD_NICKNAME = "hmd";
+    #endregion
+
+    #region Serialized Fields
+    [SerializeField] private AppDeviceType device;
+    [SerializeField] private TaskManager taskManager;
+    #endregion
 
     void Start()
     {
         if (!PhotonNetwork.IsConnected)
         {
-            PhotonNetwork.NickName = deviceName;
+            PhotonNetwork.NickName = device.ToString();
             PhotonNetwork.ConnectUsingSettings();
         }
     }
 
     public override void OnConnectedToMaster()
     {
-        base.OnConnectedToMaster();
         Debug.Log("connected");
-        RoomOptions roomOptions = new RoomOptions();
-        roomOptions.MaxPlayers = maxPlayerCount;
-        roomOptions.IsOpen = true;
-        roomOptions.IsVisible = true;
-
-        PhotonNetwork.JoinOrCreateRoom("myRoom", roomOptions, TypedLobby.Default);
+        RoomOptions roomOptions = new RoomOptions
+        {
+            MaxPlayers = MAX_PLAYER_COUNT,
+            IsOpen = true,
+            IsVisible = true
+        };
+        PhotonNetwork.JoinOrCreateRoom(ROOM_NAME, roomOptions, TypedLobby.Default);
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        base.OnJoinRandomFailed(returnCode, message);
         Debug.Log($"failed to join room: error code = {returnCode}, msg = {message}");
-    }
-
-    public override void OnJoinedRoom()
-    {
-        base.OnJoinedRoom();
-        Debug.Log("joined room");
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
         PhotonNetwork.ReconnectAndRejoin();
-    }
-
-
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        Debug.Log($"{otherPlayer.NickName} left");
     }
 }

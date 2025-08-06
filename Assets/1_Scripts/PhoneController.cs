@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class PhoneController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField] private TaskManager taskManager;
+    private const float DELAY_BEFORE_RELEASE = 0.05f;
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -14,7 +14,7 @@ public class PhoneController : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     public void OnPointerUp(PointerEventData eventData)
     {
         taskManager.SendRaySelectionRequest();
-        Invoke(nameof(DelayedRayRelease), 0.05f);
+        Invoke(nameof(DelayedRayRelease), DELAY_BEFORE_RELEASE);
     }
 
     private void DelayedRayRelease()
