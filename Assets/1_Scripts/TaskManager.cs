@@ -15,14 +15,13 @@ public class TaskManager : MonoBehaviourPunCallbacks
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI fullLabelText;
-    [SerializeField]private Image colorTag;
+    [SerializeField] private Image colorTag;
     [SerializeField] private Button backButton;
     [SerializeField] private List<Button> labelThumbnails;
 
     private PhotonView pv;
     private List<string> allLabelTexts = new List<string>();
     private Player hmd;
-
 
     private void Awake()
     {
@@ -110,13 +109,63 @@ public class TaskManager : MonoBehaviourPunCallbacks
     public void SendRayHoldState(bool isHeld)
     {
         if (hmd != null)
-            pv.RPC("SetRayHold", RpcTarget.Others, isHeld);
+            pv.RPC("SetRayHold", hmd, isHeld);
     }
 
     public void SendRaySelectionRequest()
     {
         if (hmd != null)
-            pv.RPC("SelectWithRay", RpcTarget.Others);
+            pv.RPC("SelectWithRay", hmd);
+    }
+    #endregion
+
+    #region Private Helper Methods
+    private void PopulateAndSetupThumbnails()
+    {
+        if (labelThumbnails == null || labelThumbnails.Count == 0)
+        {
+            labelThumbnails = new List<Button>();
+            foreach (Transform child in overviewPage.transform)
+            {
+                if (child.TryGetComponent<Button>(out Button button))
+                    labelThumbnails.Add(button);
+            }
+        }
+
+        for (int i = 0; i < labelThumbnails.Count; i++)
+        {
+            int index = i;
+            labelThumbnails[i].onClick.AddListener(() => OnThumbnailClicked(index));
+        }
+    }
+
+    private void OnThumbnailClicked(int index)
+    {
+        if (hmd != null)
+            pv.RPC("RequestSelectObjectFromPhone", hmd, index);
+        else
+            Debug.LogWarning("Cannot send RPC: HMD player not found.");
+        ShowFullLabelPage();
+    }
+
+    private void OnBackButtonClicked()
+    {
+        if (hmd != null)
+            pv.RPC("RequestDeselectFromPhone", hmd);
+        else
+            Debug.LogWarning("Cannot send RPC: HMD player not found.");
+    }
+
+    private IEnumerator RebuildLayout()
+    {
+        yield return new WaitForEndOfFrame();
+
+        var contentRect = fullLabelText.transform.parent as RectTransform;
+        if (contentRect != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+            contentRect.localPosition = new Vector3(contentRect.localPosition.x, 0, contentRect.localPosition.z);
+        }
     }
     #endregion
 
@@ -185,56 +234,6 @@ public class TaskManager : MonoBehaviourPunCallbacks
         else
         {
             ShowOverviewPage();
-        }
-    }
-    #endregion
-
-    #region Private Helper Methods
-    private void PopulateAndSetupThumbnails()
-    {
-        if (labelThumbnails == null || labelThumbnails.Count == 0)
-        {
-            labelThumbnails = new List<Button>();
-            foreach (Transform child in overviewPage.transform)
-            {
-                if (child.TryGetComponent<Button>(out Button button))
-                    labelThumbnails.Add(button);
-            }
-        }
-
-        for (int i = 0; i < labelThumbnails.Count; i++)
-        {
-            int index = i;
-            labelThumbnails[i].onClick.AddListener(() => OnThumbnailClicked(index));
-        }
-    }
-
-    private void OnThumbnailClicked(int index)
-    {
-        if (hmd != null)
-            pv.RPC("RequestSelectObjectFromPhone", hmd, index);
-        else
-            Debug.LogWarning("Cannot send RPC: HMD player not found.");
-        ShowFullLabelPage();
-    }
-
-    private void OnBackButtonClicked()
-    {
-        if (hmd != null)
-            pv.RPC("RequestDeselectFromPhone", hmd);
-        else
-            Debug.LogWarning("Cannot send RPC: HMD player not found.");
-    }
-
-    private IEnumerator RebuildLayout()
-    {
-        yield return new WaitForEndOfFrame();
-
-        var contentRect = fullLabelText.transform.parent as RectTransform;
-        if (contentRect != null)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-            contentRect.localPosition = new Vector3(contentRect.localPosition.x, 0, contentRect.localPosition.z);
         }
     }
     #endregion

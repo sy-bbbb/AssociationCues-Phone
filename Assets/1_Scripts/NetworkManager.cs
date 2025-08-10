@@ -5,9 +5,10 @@ using UnityEngine;
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
     #region Constants
-    private const int MAX_PLAYER_COUNT = 3;
+    private const int MAX_PLAYER_COUNT = 4;
     private const string ROOM_NAME = "myRoom";
     public const string HMD_NICKNAME = "hmd";
+    public const string DESKTOP_NICKNAME = "desktop";
     #endregion
 
     #region Serialized Fields
@@ -15,8 +16,16 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     [SerializeField] private TaskManager taskManager;
     #endregion
 
+    private void Awake()
+    {
+        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = "kr";
+        PhotonNetwork.PhotonServerSettings.DevRegion = "kr";
+    }
     void Start()
     {
+        PhotonNetwork.NetworkingClient.AppId = PhotonNetwork.PhotonServerSettings.AppSettings.AppIdRealtime;
+        PhotonNetwork.NetworkingClient.AppVersion = Application.version;
+
         if (!PhotonNetwork.IsConnected)
         {
             PhotonNetwork.NickName = device.ToString();
